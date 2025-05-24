@@ -25,11 +25,11 @@ app.post('/webhook', (req: Request, res: Response) => {
   const validator = new hmacValidator();
 
   const notificationRequest = req.body;
-  const notificationRequestItems = notificationRequest.notificationItems;
+  const notificationRequestItems = notificationRequest?.notificationItems;
 
   // fetch first (and only) NotificationRequestItem
-  const notification = notificationRequestItems[0].NotificationRequestItem;
-  console.log(notification);
+  const notification = notificationRequestItems[0]?.NotificationRequestItem;
+  console.log('Notification: ', notification);
 
   // Handle the notification
   if (validator.validateHMAC(notification, hmacKey)) {
