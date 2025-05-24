@@ -1,0 +1,6 @@
+plan: free
+name: adyen-payment-processing
+type: web
+runtime: node
+buildCommand: npm install
+startCommand: npm run build; npm start
