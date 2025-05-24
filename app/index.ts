@@ -17,7 +17,8 @@ const adyenClient = new Client({
 app.use(express.json());
 
 app.post('/webhook', (req: Request, res: Response) => {
-  console.log('Webhook received:', req.body);
+  console.log('Webhook received');
+  console.dir(req.body, { depth: null });
 
   // this code was taken from https://github.com/adyen-examples/adyen-node-online-payments/tree/main/checkout-example
   const hmacKey = process.env.ADYEN_HMAC_KEY;
