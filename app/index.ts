@@ -6,6 +6,8 @@ const {
   hmacValidator,
 } = require('@adyen/api-library');
 
+require('dotenv').config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
