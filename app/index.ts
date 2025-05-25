@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { Client, CheckoutAPI, hmacValidator } from '@adyen/api-library';
 import { v4 as uuid } from 'uuid';
 import { set } from './store';
@@ -8,8 +9,14 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173', // Replace with your frontend URL
+  // methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  // credentials: true, // Allow cookies if needed
+}));
+
 const adyenClient = new Client({
-  apiKey: process.env.adyen_api_key ?? '',
+  apiKey: process.env.ADYEN_API_KEY ?? '',
   environment: 'TEST',
 });
 
@@ -37,35 +44,31 @@ app.use(express.json());
 
 app.post('/api/session', async (req: Request, res: Response) => {
   try {
-    const {orderRef, amount, items} = req.body;
+    const {order_reference, amount, items = []} = req.body;
 
-    if (!orderRef) throw new Error('No order reference provided');
+    if (!order_reference) throw new Error('No order reference provided');
 
-    console.log('Received payment request for orderRef: ' + orderRef);
+    console.log('Received payment request for order_reference: ' + order_reference);
 
     // Ideally the data passed here should be computed based on business logic
     const response = await checkout.PaymentsApi.sessions({
       countryCode: 'NL',
-      amount: { currency: 'EUR', value: 25000 },
-      reference: orderRef,
+      amount: { currency: 'EUR', value: amount },
+      reference: order_reference,
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT ?? '',
-      returnUrl: `${determineHostUrl(req)}/redirect?orderRef=${orderRef}`, // required for 3ds2 redirect flow
-      // set lineItems required for some payment methods (ie Klarna)
-      lineItems: [
-        { quantity: 1, amountIncludingTax: 20000, description: 'Lloyd Wright coffee table' },
-        { quantity: 1, amountIncludingTax: 500, description: 'van der Rohe centerpiece' },
-      ],
+      returnUrl: `${determineHostUrl(req)}/redirect?order_reference=${order_reference}`, // required for 3ds2 redirect flow
+      lineItems: items,
     });
 
     // save transaction in memory
     // enable webhook to confirm the payment (change status to Authorized)
     const transaction = {
       amount: { currency: 'EUR', value: 1000 },
-      paymentRef: orderRef,
+      paymentRef: order_reference,
       status: 'Pending',
     };
 
-    set(orderRef, transaction);
+    set(order_reference, transaction);
 
     res.json(response);
   } catch (err: any) {
