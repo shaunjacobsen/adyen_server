@@ -6,6 +6,6 @@ export function get(key: string) {
 
 export function set(key: string, value: any) {
   store[key] = value;
-  console.log('\x1b[38;2;244;154;194mDatabase entry updaetd\x1b[0m');
+  console.log('\x1b[38;2;244;154;194mDatabase entry updated\x1b[0m');
   console.dir(store[key], { depth: null });
 }
